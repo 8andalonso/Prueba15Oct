@@ -15,4 +15,10 @@ public interface ProductService {
     Product save(Product product);
     void delete(Product product);
     List<Product> findAll();
+    
+    
+    // Metodo que recupera todos los productos de una presentacion concreta,
+    // cuyo nombre se recibe como parametro METODO 4
+     
+    List<Product> findByPresentationName(String presentation);
 }

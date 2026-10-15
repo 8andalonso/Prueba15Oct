@@ -48,5 +48,14 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> findAll() {
         return productDao.findAll();
     }
+    
+    
+     // Recupera los productos de una presentacion concreta, delegando
+     // en el metodo personalizado del ProductDao METODO 4
+     
+    @Override
+    public List<Product> findByPresentationName(String presentation) {
+        return productDao.findByPresentationName(presentation);
+    }
 
 }

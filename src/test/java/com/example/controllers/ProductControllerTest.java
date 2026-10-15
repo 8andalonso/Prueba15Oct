@@ -319,6 +319,71 @@ class ProductControllerTest {
                 .andExpect(status().isOk());
 
     }
+    
+    /**
+     * Test de integracion al end point products-by-presentation con un usuario
+     * NO registrado, y por consiguiente NO autenticado. Como no se envia la
+     * cabecera Authorization con el token, Spring Security tiene que responder
+     * con el codigo 401 (UNAUTHORIZED).
+     * 
+     * Lanzar la prueba desde la terminal con maven:
+     * 
+     * ./mvnw test -Dtest=ProductControllerTest#testProductsByPresentationSinAutenticar
+     * 
+     * En Windows (PowerShell):
+     * 
+     * .\mvnw.cmd test "-Dtest=ProductControllerTest#testProductsByPresentationSinAutenticar"
+     */
+    @Test
+    @DisplayName("Controller Test productos por presentacion con usuario NO autenticado")
+    void testProductsByPresentationSinAutenticar() throws Exception {
+
+        // given => no hace falta preparar nada, la peticion no llega al servicio
+
+        // when => peticion GET sin la cabecera Authorization (sin token)
+        ResultActions response = mockMvc
+                .perform(get("/products/products-by-presentation")
+                .param("presentation", "unidad")
+                .accept(MediaType.APPLICATION_JSON));
+
+        // then => se espera 401 UNAUTHORIZED
+        response.andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+    
+    /**
+     * Test de integracion al end point products-by-presentation con un usuario
+     * registrado y autenticado. El token se obtiene en el metodo setUp() haciendo
+     * login con el usuario admin1, y se envia en la cabecera Authorization.
+     * 
+     * Lanzar la prueba desde la terminal con maven:
+     * 
+     * ./mvnw test -Dtest=ProductControllerTest#testProductsByPresentationAutenticado
+     * 
+     * En Windows (PowerShell):
+     * 
+     * .\mvnw.cmd test "-Dtest=ProductControllerTest#testProductsByPresentationAutenticado"
+     */
+    @Test
+    @DisplayName("Controller Test productos por presentacion con usuario autenticado")
+    void testProductsByPresentationAutenticado() throws Exception {
+
+        // given => simulamos (mock) que el servicio devuelve la lista de productos
+        given(productService.findByPresentationName("unidad"))
+            .willReturn(products);
+
+        // when => peticion GET con el token en la cabecera Authorization
+        ResultActions response = mockMvc
+                .perform(get("/products/products-by-presentation")
+                .param("presentation", "unidad")
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", this.token));
+
+        // then => se espera 200 OK y el mismo numero de productos que la lista
+        response.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.products.size()", is(products.size())));
+    }
 	
 }
 

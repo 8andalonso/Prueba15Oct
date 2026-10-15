@@ -53,4 +53,28 @@ public interface ProductDao extends JpaRepository<Product, Integer> {
     // recupera el producto con su presentacion correspondiente
     @Query(value = "select p from Product p left join fetch p.presentation where p.id = :id")
     public Product findById(int id);
+    
+    
+    /**
+     * METODO 4. Dado el nombre de una presentacion, que se recibe como parametro,
+     * recupera todos los productos que tienen esa presentacion, por ejemplo,
+     * todos los productos cuya presentacion sea "unidad".
+     * 
+     * Igual que en los metodos anteriores, utilizamos HQL/JPQL y "left join fetch"
+     * para traer cada producto con su presentacion en una sola consulta, en lugar
+     * de que hibernate tenga que ir a buscar la presentacion de cada producto
+     * despues (patron LAZY).
+     * 
+     * En la clausula where se navega por la relacion p.presentation.name, es decir,
+     * se consulta la propiedad name de la entidad Presentation asociada al producto,
+     * y no una columna de una tabla, porque JPQL trabaja con entidades.
+     * 
+     * El parametro :presentation se enlaza con el argumento del metodo que tiene
+     * el mismo nombre (presentation).
+     */
+    @Query(value = "select p from Product p left join fetch p.presentation where p.presentation.name = :presentation")
+    public List<Product> findByPresentationName(String presentation);
+  
 }
+
+

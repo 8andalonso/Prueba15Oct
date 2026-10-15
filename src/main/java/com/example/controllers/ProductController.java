@@ -127,6 +127,51 @@ public class ProductController {
 
 		return new ResponseEntity<>(responseAsMap, HttpStatus.OK);
 	}
+	
+	
+	/**
+	 * El metodo siguiente va a responder a una peticion (request) del tipo:
+	 * 
+	 * http://localhost:8080/products/products-by-presentation?presentation=unidad
+	 * 
+	 * Donde el parametro presentation es el nombre de la presentacion, y es
+	 * requerido, es decir, obligatorio. Devuelve todos los productos que tienen
+	 * esa presentacion.
+	 * 
+	 * Esta ruta no choca con /products/{id} porque Spring da prioridad a las
+	 * rutas literales sobre las que tienen variables.
+	 */
+	@GetMapping("/products-by-presentation")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	public ResponseEntity<Map<String, Object>> findProductsByPresentation(
+			@RequestParam(name = "presentation", required = true) String presentation) {
+
+		Map<String, Object> responseAsMap = new HashMap<>();
+		ResponseEntity<Map<String, Object>> responseEntity = null;
+
+		try {
+			List<Product> products = productService.findByPresentationName(presentation);
+
+			if (products != null && !products.isEmpty()) {
+				// Se han encontrado productos con esa presentacion => 200 OK
+				responseAsMap.put("products", products);
+				responseEntity = new ResponseEntity<>(responseAsMap, HttpStatus.OK);
+			} else {
+				// No hay productos con esa presentacion => 404 NOT FOUND
+				String failureMessage = "No hay productos con la presentacion: " + presentation;
+				responseAsMap.put("Error: ", failureMessage);
+				responseEntity = new ResponseEntity<>(responseAsMap, HttpStatus.NOT_FOUND);
+			}
+		} catch (DataAccessException e) {
+			// Error al acceder a la base de datos => 500 INTERNAL SERVER ERROR
+			String errorMessage = "Error al recuperar los productos, siendo la causa mas probable: "
+					+ e.getMostSpecificCause().getMessage();
+			responseAsMap.put("Error: ", errorMessage);
+			responseEntity = new ResponseEntity<>(responseAsMap, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		return responseEntity;
+	}
 
 	/**
 	 * El metodo siguiente recupera un Producto por el id que se recibe como una
@@ -505,4 +550,5 @@ public class ProductController {
         return responseEntity;
     }
 
+     
 }
